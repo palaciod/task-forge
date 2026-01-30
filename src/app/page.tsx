@@ -1,65 +1,150 @@
-import Image from "next/image";
+"use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/app/components/atoms/Button/Button";
+import { Icon } from "@/app/components/atoms/Icon/Icon";
+import NewProjectFormModal from "@/app/components/organisms/Modal/NewProjectFormModal/NewProjectFormModal";
+import type { Project } from "@/types/Project";
 
-export default function Home() {
+const Home = () => {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchProjects = async () => {
+    const response = await fetch("/api/projects");
+    const data = await response.json();
+    setProjects(data);
+  };
+
+  const handleOnClose = (open: boolean) => {
+    setIsModalOpen(open);
+    if (!open) {
+      fetchProjects();
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto w-full max-w-4xl px-4 py-8">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Select a project and sprint to view its board
+            </p>
+          </div>
+          <Button
+            data-testid="new-project-button"
+            onClick={() => setIsModalOpen(true)}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <Icon name="Plus" size="sm" className="mr-2" />
+            New Project
+          </Button>
         </div>
-      </main>
+
+        <div className="space-y-6">
+          {projects.length === 0 ? (
+            <div className="rounded-2xl border bg-card p-8 shadow-sm">
+              <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/50">
+                    <Icon
+                      name="FolderPlus"
+                      size="md"
+                      className="text-muted-foreground"
+                    />
+                  </div>
+
+                  <div>
+                    <p className="text-base font-medium">No projects yet</p>
+                    <p className="mt-1 max-w-md text-sm text-muted-foreground">
+                      Create your first project to start organizing sprints,
+                      epics, and work items.
+                    </p>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      <Button onClick={() => setIsModalOpen(true)}>
+                        <Icon name="Plus" size="sm" className="mr-2" />
+                        Create project
+                      </Button>
+
+                      <Button variant="secondary" asChild>
+                        <Link href="/project/new">
+                          <Icon
+                            name="ExternalLink"
+                            size="sm"
+                            className="mr-2"
+                          />
+                          Use full page
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Optional: small “tips” column */}
+                <div className="w-full rounded-2xl bg-muted/30 p-4 sm:w-[260px]">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Quick tips
+                  </p>
+                  <ul className="mt-2 space-y-2 text-sm">
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
+                      Start with a single sprint (e.g. Sprint 1)
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
+                      Add epics later — projects can begin empty
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {projects?.map((project) => (
+                <div
+                  key={project.id}
+                  className="rounded-2xl border bg-card p-4 shadow-sm"
+                >
+                  <div className="mb-3">
+                    <p className="font-medium">{project.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {project.description}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    {project.sprints.map((sprint) => (
+                      <Link
+                        key={sprint.id}
+                        href={`/project/${project.id}/${sprint.id}`}
+                        className="flex items-center justify-between rounded-xl bg-muted/30 p-3 transition-colors hover:bg-accent"
+                      >
+                        <span className="text-sm">
+                          Sprint {sprint.iteration}
+                        </span>
+                        <Icon
+                          name="ChevronRight"
+                          size="sm"
+                          className="text-muted-foreground"
+                        />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      </div>
+
+      <NewProjectFormModal open={isModalOpen} onOpenChange={handleOnClose} />
     </div>
   );
-}
+};
+
+export default Home;
