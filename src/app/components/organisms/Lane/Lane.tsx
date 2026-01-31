@@ -1,11 +1,14 @@
 import React from "react";
 import Card from "@/app/components/organisms/Card/Card";
-import { CardType } from "@/types/Card";
+import Ticket from "@/app/components/organisms/Ticket/Tiket";
+import TickFooter from "@/app/components/organisms/Ticket/TickFooter";
+import TicketActionItem from "@/app/components/organisms/Ticket/TicketActionItem";
+import { TicketType } from "@/types/Card";
 import { Typography } from "../../atoms/Typography/Typography";
 
 type LaneProps = {
   Title: string;
-  tickets: CardType[];
+  tickets: TicketType[];
 };
 
 const Lane = ({ Title, tickets }: LaneProps) => {
@@ -18,9 +21,25 @@ const Lane = ({ Title, tickets }: LaneProps) => {
           title={ticket.title}
           Description={ticket.Description}
           action={ticket.action}
-          footer={ticket.footer}
+          actionContent={
+            ticket.initials ? (
+              <TicketActionItem
+                assigneePhoto={ticket.assigneePhoto}
+                initials={ticket.initials}
+              />
+            ) : undefined
+          }
+          footer={<TickFooter />}
         >
-          {ticket.children}
+          {ticket.type && ticket.priority ? (
+            <Ticket
+              id={ticket.title}
+              type={ticket.type}
+              priority={ticket.priority}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">Failed to retrieve ticket data</p>
+          )}
         </Card>
       ))}
     </div>

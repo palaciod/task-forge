@@ -10,25 +10,37 @@ import {
 } from "@/app/components/shadcn/card";
 import { Icon } from "@/app/components/atoms/Icon/Icon";
 import { Button } from "@/app/components/atoms/Button/Button";
-import { CardType } from "@/types/Card";
+import { ReactNode } from "react";
+import { CardAction as CardActionType } from "@/types/Card";
 
-export type CardProps = Omit<CardType, 'id'>;
+export type CardProps = {
+  title: string;
+  Description: string;
+  action: CardActionType;
+  actionContent?: ReactNode;
+  children?: ReactNode;
+  footer?: ReactNode;
+};
 
 
-const Card = ({ title, Description, action, children, footer }: CardProps) => {
+const Card = ({ title, Description, action, actionContent, children, footer }: CardProps) => {
   return (
     <ShadcnCard className="w-full max-w-sm">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{Description}</CardDescription>
         <CardAction>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => action?.onClick()}
-          >
-            {action?.name && <Icon name={action?.name} />}
-          </Button>
+          {actionContent ? (
+            actionContent
+          ) : (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => action?.onClick()}
+            >
+              {action?.name && <Icon name={action?.name} />}
+            </Button>
+          )}
         </CardAction>
       </CardHeader>
       <CardContent>
