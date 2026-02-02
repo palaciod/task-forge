@@ -4,6 +4,7 @@ import { SimpleTickets } from "@/constants/mock/cards";
 import Lane from "@/app/components/organisms/Lane/Lane";
 import { useBoardContext } from "@/app/context/BoardContext/BoardContext";
 import TicketFormModal from "@/app/components/organisms/Modal/TicketFormModal/TicketFormModal";
+import MenuDrawer from "@/app/components/molecules/MenuDrawer/MenuDrawer";
 
 type BoardProps = {
   projectId: string;
@@ -37,10 +38,11 @@ const Board = ({ projectId, sprintId }: BoardProps) => {
 
   return (
     <div className="flex flex-col gap-4 pt-10 flex-1 w-full">
-      <div className="flex justify-end">
+      <div className="flex justify-between px-8 pb-8">
+        <MenuDrawer />
         <TicketFormModal projectId={projectId} sprintId={sprintId} />
       </div>
-      <div className="flex gap-8">
+      <div className="flex gap-8 px-8">
         {board?.lanes.map((lane) => (
           <Lane Title={lane.name} key={lane.name} tickets={SimpleTickets} />
         ))}

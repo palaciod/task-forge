@@ -18,7 +18,8 @@ export type TicketType = {
   type?: "task" | "bug" | "story";
   priority?: "high" | "medium" | "low";
   assigneePhoto?: string;
-  initials?: string;
+  assigneeId: string | null;
+  assigneeName: string | null;
   children?: ReactNode;
   actionContent?: ReactNode;
   footer?: ReactNode;

@@ -1,6 +1,30 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import TicketForm from "@/app/components/organisms/Forms/Ticket/TicketForm";
 
+const mockUsersResponse = [
+  {
+    id: "user-1",
+    name: "John Doe",
+    email: "john.doe@example.com",
+    projects: ["d2c9534f-0d98-4f3d-afcc-946a2d7e3553"],
+    ticketsCompleted: 10,
+  },
+  {
+    id: "user-2",
+    name: "Sarah Miller",
+    email: "sarah.miller@example.com",
+    projects: ["d2c9534f-0d98-4f3d-afcc-946a2d7e3553"],
+    ticketsCompleted: 5,
+  },
+  {
+    id: "user-3",
+    name: "Alex Brown",
+    email: "alex.brown@example.com",
+    projects: ["d2c9534f-0d98-4f3d-afcc-946a2d7e3553"],
+    ticketsCompleted: 15,
+  },
+];
+
 const mockTicketResponse = {
   id: "mock-ticket-id",
   projectId: "d2c9534f-0d98-4f3d-afcc-946a2d7e3553",
@@ -28,6 +52,17 @@ const meta = {
       const originalFetch = global.fetch;
       global.fetch = async (url: string | URL | Request) => {
         const urlString = url.toString();
+        
+        if (urlString.includes('/api/Users')) {
+          // Simulate network delay
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockUsersResponse,
+          } as Response);
+        }
+        
         if (urlString.includes('/api/tickets')) {
           // Simulate network delay
           await new Promise(resolve => setTimeout(resolve, 1000));

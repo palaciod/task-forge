@@ -22,10 +22,10 @@ const Lane = ({ Title, tickets }: LaneProps) => {
           Description={ticket.Description}
           action={ticket.action}
           actionContent={
-            ticket.initials ? (
+            ticket.assigneeId && ticket.assigneeName ? (
               <TicketActionItem
                 assigneePhoto={ticket.assigneePhoto}
-                initials={ticket.initials}
+                assigneeName={ticket.assigneeName}
               />
             ) : undefined
           }

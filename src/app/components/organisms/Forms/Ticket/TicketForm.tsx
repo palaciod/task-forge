@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
+import type { User } from "@/types/User";
 import type { JSONContent } from "@tiptap/react";
 
 import { Button } from "@/app/components/atoms/Button/Button";
@@ -16,6 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/molecules/Select/Select";
+import {
+  TicketFormData,
+  ticketPriorityOptions,
+  ticketTypeOptions,
+} from "@/types/Ticket";
 
 type TicketFormProps = {
   projectId: string;
@@ -23,17 +29,10 @@ type TicketFormProps = {
   onSuccess?: () => void;
 };
 
-type TicketType = "task" | "bug" | "story";
-type TicketPriority = "high" | "medium" | "low";
-
-type TicketFormData = {
-  description: JSONContent | null;
-  type: TicketType;
-  priority: TicketPriority;
-  initials?: string;
+const EMPTY_DOC: JSONContent = {
+  type: "doc",
+  content: [{ type: "paragraph" }],
 };
-
-const EMPTY_DOC: JSONContent = { type: "doc", content: [{ type: "paragraph" }] };
 
 function isEmptyTiptapDoc(doc: JSONContent | null | undefined) {
   if (!doc || !doc.content || doc.content.length === 0) return true;
@@ -51,6 +50,8 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
   const {
     register,
@@ -63,10 +64,32 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
       description: EMPTY_DOC,
       type: "task",
       priority: "medium",
-      initials: "",
+      assigneeId: null,
+      assigneeName: "Unassigned",
     },
     mode: "onSubmit",
   });
+
+  // Fetch users belonging to the project
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch(`/api/Users?projectId=${projectId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch users");
+        }
+        const data = await response.json();
+        setUsers(data);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setError("Failed to load users");
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, [projectId]);
 
   const onSubmit = async (data: TicketFormData) => {
     setIsSubmitting(true);
@@ -80,7 +103,8 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
       description: data.description ?? EMPTY_DOC,
       type: data.type,
       priority: data.priority,
-      initials: data.initials?.trim().toUpperCase() || undefined,
+      assigneeId: data.assigneeId,
+      assigneeName: data.assigneeName,
     };
 
     try {
@@ -102,7 +126,13 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
       }
 
       setSuccess(true);
-      reset({ description: EMPTY_DOC, type: "task", priority: "medium", initials: "" });
+      reset({
+        description: EMPTY_DOC,
+        type: "task",
+        priority: "medium",
+        assigneeId: null,
+        assigneeName: "Unassigned",
+      });
       onSuccess?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -123,7 +153,8 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
           name="description"
           control={control}
           rules={{
-            validate: (v) => (!isEmptyTiptapDoc(v) ? true : "Description is required"),
+            validate: (v) =>
+              !isEmptyTiptapDoc(v) ? true : "Description is required",
           }}
           render={({ field }) => (
             <div>
@@ -139,7 +170,9 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
         />
 
         {errors.description && (
-          <p className="text-sm text-destructive">{String(errors.description.message)}</p>
+          <p className="text-sm text-destructive">
+            {String(errors.description.message)}
+          </p>
         )}
       </div>
 
@@ -153,19 +186,27 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
           name="type"
           rules={{ required: "Type is required" }}
           render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+              disabled={isSubmitting}
+            >
               <SelectTrigger id="type" aria-invalid={!!errors.type}>
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="task">Task</SelectItem>
-                <SelectItem value="bug">Bug</SelectItem>
-                <SelectItem value="story">Story</SelectItem>
+                {ticketTypeOptions?.map((type) => (
+                  <SelectItem value={type} key={type}>
+                    {type}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           )}
         />
-        {errors.type && <p className="text-sm text-destructive">{errors.type.message}</p>}
+        {errors.type && (
+          <p className="text-sm text-destructive">{errors.type.message}</p>
+        )}
       </div>
 
       {/* Priority */}
@@ -175,36 +216,66 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
           control={control}
           name="priority"
           render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+              disabled={isSubmitting}
+            >
               <SelectTrigger id="priority" aria-invalid={!!errors.priority}>
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
+                {ticketPriorityOptions?.map((priority) => (
+                  <SelectItem value={priority} key={priority}>
+                    {priority}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           )}
         />
       </div>
 
-      {/* Assignee Initials */}
+      {/* Assignee */}
       <div className="space-y-2">
-        <Label htmlFor="initials">Assignee Initials (Optional)</Label>
-        <Input
-          id="initials"
-          placeholder="e.g., JD"
-          maxLength={3}
-          disabled={isSubmitting}
-          {...register("initials", {
-            pattern: { value: /^[A-Za-z]{0,3}$/, message: "Use up to 3 letters" },
-          })}
-          aria-invalid={!!errors.initials}
+        <Label htmlFor="assignee">Assignee</Label>
+        <Controller
+          control={control}
+          name="assigneeId"
+          render={({ field }) => (
+            <Select
+              value={field.value || "unassigned"}
+              onValueChange={(value) => {
+                if (value === "unassigned") {
+                  field.onChange(null);
+                  // Also update assigneeName
+                  const assigneeNameField = control._formValues.assigneeName;
+                  control._formValues.assigneeName = "Unassigned";
+                } else {
+                  field.onChange(value);
+                  // Find user and set assigneeName
+                  const user = users.find((u) => u.id === value);
+                  if (user) {
+                    control._formValues.assigneeName = user.name;
+                  }
+                }
+              }}
+              disabled={isSubmitting || loadingUsers}
+            >
+              <SelectTrigger id="assignee">
+                <SelectValue placeholder="Select assignee" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
+                {users.map((user) => (
+                  <SelectItem value={user.id} key={user.id}>
+                    {user.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         />
-        {errors.initials && (
-          <p className="text-sm text-destructive">{errors.initials.message}</p>
-        )}
       </div>
 
       {/* Success Message */}
