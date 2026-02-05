@@ -13,6 +13,7 @@ type TicketFormData = {
   priority: TicketPriority;
   assigneeId: string | null;
   assigneeName: string | null;
+  laneId?: string;
 };
 
 export { ticketPriorityOptions, ticketTypeOptions };

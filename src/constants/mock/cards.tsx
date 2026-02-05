@@ -3,6 +3,7 @@ import { TicketType } from "@/types/Card";
 
 const MOCK_PROJECT_ID = "d2c9534f-0d98-4f3d-afcc-946a2d7e3553";
 const MOCK_SPRINT_ID = "f10ca966-651a-48ba-bc4a-cecb4771e9e6";
+const MOCK_LANE_ID = "61148544-2032-4659-90d5-245c5b90f976";
 
 export const SimpleTickets: TicketType[] = [
     {
@@ -10,6 +11,8 @@ export const SimpleTickets: TicketType[] = [
       projectId: MOCK_PROJECT_ID,
       sprintId: MOCK_SPRINT_ID,
       sprintHistory: [MOCK_SPRINT_ID],
+      laneId: MOCK_LANE_ID,
+      laneHistory: [MOCK_LANE_ID],
       ticketNumber: 1,
       title: "TASK-123",
       Description: {
@@ -38,6 +41,8 @@ export const SimpleTickets: TicketType[] = [
       projectId: MOCK_PROJECT_ID,
       sprintId: MOCK_SPRINT_ID,
       sprintHistory: [MOCK_SPRINT_ID],
+      laneId: MOCK_LANE_ID,
+      laneHistory: [MOCK_LANE_ID],
       ticketNumber: 2,
       title: "BUG-456",
       Description: {
@@ -65,6 +70,8 @@ export const SimpleTickets: TicketType[] = [
       projectId: MOCK_PROJECT_ID,
       sprintId: MOCK_SPRINT_ID,
       sprintHistory: [MOCK_SPRINT_ID],
+      laneId: MOCK_LANE_ID,
+      laneHistory: [MOCK_LANE_ID],
       ticketNumber: 3,
       title: "STORY-789",
       Description: {
@@ -93,6 +100,8 @@ export const SimpleTickets: TicketType[] = [
       projectId: MOCK_PROJECT_ID,
       sprintId: MOCK_SPRINT_ID,
       sprintHistory: [MOCK_SPRINT_ID],
+      laneId: MOCK_LANE_ID,
+      laneHistory: [MOCK_LANE_ID],
       ticketNumber: 4,
       title: "TASK-999",
       Description: {

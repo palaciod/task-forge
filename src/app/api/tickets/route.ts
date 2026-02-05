@@ -118,6 +118,20 @@ export const POST = async (request: Request) => {
     return NextResponse.json({ error: "Board not found for project" }, { status: 404 });
   }
 
+  // Default to first lane if laneId not provided
+  const laneId = body.laneId || board.lanes[0]?.id;
+  
+  if (!laneId) {
+    return NextResponse.json({ error: "No lanes found in board" }, { status: 400 });
+  }
+
+  // Validate laneId exists in board
+  const laneExists = board.lanes.some((lane) => lane.id === laneId);
+  
+  if (!laneExists) {
+    return NextResponse.json({ error: "Lane not found in board" }, { status: 404 });
+  }
+
   // Get existing tickets to calculate next ticket number
   const tickets = await readTickets();
   const projectTickets = tickets.filter((t) => t.projectId === body.projectId);
@@ -136,6 +150,8 @@ export const POST = async (request: Request) => {
     projectId: body.projectId,
     sprintId: body.sprintId,
     sprintHistory: [body.sprintId],
+    laneId: laneId,
+    laneHistory: [laneId],
     ticketNumber: nextTicketNumber,
     title: `${board.key.toUpperCase()}-${nextTicketNumber}`,
     Description: body.description,

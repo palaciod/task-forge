@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import type { JSONContent } from "@tiptap/react";
 
@@ -22,6 +22,7 @@ import {
   ticketPriorityOptions,
   ticketTypeOptions,
 } from "@/types/Ticket";
+import { useBoardContext } from "@/app/context/BoardContext/BoardContext";
 
 type TicketFormProps = {
   projectId: string;
@@ -50,6 +51,7 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const { board } = useBoardContext();
 
   const {
     register,
@@ -65,9 +67,16 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
       priority: "medium",
       assigneeId: null,
       assigneeName: "Unassigned",
+      laneId: undefined,
     },
     mode: "onSubmit",
   });
+
+  useEffect(() => {
+    if (board?.lanes?.[0]?.id) {
+      setValue("laneId", board.lanes[0].id);
+    }
+  }, [board, setValue]);
 
   const onSubmit = async (data: TicketFormData) => {
     setIsSubmitting(true);
@@ -77,7 +86,7 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
     const payload = {
       projectId,
       sprintId,
-      // Store TipTap JSON (recommended). If your API expects HTML, we can convert later.
+      laneId: data.laneId,
       description: data.description ?? EMPTY_DOC,
       type: data.type,
       priority: data.priority,
@@ -97,8 +106,8 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
         try {
           const errorData = await response.json();
           message = errorData?.error || message;
-        } catch {
-          // ignore JSON parse errors
+        } catch (error) {
+          console.log(error);
         }
         throw new Error(message);
       }
@@ -136,8 +145,6 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
           }}
           render={({ field }) => (
             <div>
-              {/* Label "htmlFor" points to "description"; your TicketEditor uses contentEditable internally.
-                  That's fine, but if you want perfect accessibility we can expose an id from TicketEditor. */}
               <TicketEditor
                 value={field.value ?? EMPTY_DOC}
                 onChange={field.onChange}
@@ -206,6 +213,31 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
                 {ticketPriorityOptions?.map((priority) => (
                   <SelectItem value={priority} key={priority}>
                     {priority}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="lane">Lane</Label>
+        <Controller
+          control={control}
+          name="laneId"
+          render={({ field }) => (
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+              disabled={isSubmitting}
+            >
+              <SelectTrigger id="lane">
+                <SelectValue placeholder="Select lane" />
+              </SelectTrigger>
+              <SelectContent>
+                {board?.lanes?.map((lane) => (
+                  <SelectItem value={lane.id} key={lane.id}>
+                    {lane.name}
                   </SelectItem>
                 ))}
               </SelectContent>

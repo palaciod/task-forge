@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect } from "react";
-import { SimpleTickets } from "@/constants/mock/cards";
 import Lane from "@/app/components/organisms/Lane/Lane";
 import { useBoardContext } from "@/app/context/BoardContext/BoardContext";
 import TicketFormModal from "@/app/components/organisms/Modal/TicketFormModal/TicketFormModal";
@@ -42,7 +41,7 @@ const Board = ({ projectId, sprintId }: BoardProps) => {
       </div>
       <div className="flex gap-8 px-8">
         {board?.lanes.map((lane) => (
-          <Lane Title={lane.name} key={lane.name} tickets={tickets} />
+          <Lane Title={lane.name} key={lane.name} tickets={tickets} laneId={lane.id} />
         ))}
       </div>
     </div>

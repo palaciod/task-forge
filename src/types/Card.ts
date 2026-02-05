@@ -12,6 +12,8 @@ export type TicketType = {
   projectId: string;
   sprintId: string;
   sprintHistory: string[];
+  laneId: string;
+  laneHistory: string[];
   ticketNumber: number;
   title: string;
   Description: JSONContent;

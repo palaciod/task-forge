@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import Card from "@/app/components/organisms/Card/Card";
 import Ticket from "@/app/components/organisms/Ticket/Tiket";
 import TickFooter from "@/app/components/organisms/Ticket/TickFooter";
@@ -10,13 +10,20 @@ import { tiptapToPlainText, truncateText } from "@/app/utils/utils";
 type LaneProps = {
   Title: string;
   tickets: TicketType[];
+  laneId?: string;
 };
 
-const Lane = ({ Title, tickets }: LaneProps) => {
+const Lane = ({ Title, tickets, laneId }: LaneProps) => {
+  const filteredTickets = useMemo(
+    () =>
+      laneId ? tickets.filter((ticket) => ticket.laneId === laneId) : tickets,
+    [tickets, laneId],
+  );
+
   return (
     <div className="flex flex-col gap-4 bg-muted p-4 rounded-md w-100">
       <Typography variant="h4">{Title}</Typography>
-      {tickets.map((ticket) => {
+      {filteredTickets.map((ticket) => {
         const descriptionText = truncateText(
           tiptapToPlainText(ticket.Description),
           120,
