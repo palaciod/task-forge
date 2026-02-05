@@ -20,6 +20,7 @@ export type TicketType = {
   action: CardAction;
   type?: "task" | "bug" | "story";
   priority?: "high" | "medium" | "low";
+  points?: number;
   assigneePhoto?: string;
   assigneeId: string | null;
   assigneeName: string | null;

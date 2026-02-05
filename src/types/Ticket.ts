@@ -7,6 +7,8 @@ const ticketPriorityOptions = ["high", "medium", "low"];
 
 const ticketTypeOptions = ["task", "bug", "story"];
 
+const ticketPointsOptions = [0, 1, 2, 3, 5, 8, 13];
+
 type TicketFormData = {
   description: JSONContent | null;
   type: TicketType;
@@ -14,7 +16,8 @@ type TicketFormData = {
   assigneeId: string | null;
   assigneeName: string | null;
   laneId?: string;
+  points?: number;
 };
 
-export { ticketPriorityOptions, ticketTypeOptions };
+export { ticketPriorityOptions, ticketTypeOptions, ticketPointsOptions };
 export type { TicketType, TicketPriority, TicketFormData };

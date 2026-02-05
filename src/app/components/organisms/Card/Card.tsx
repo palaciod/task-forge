@@ -1,4 +1,6 @@
 'use client';
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import {
   Card as ShadcnCard,
   CardAction,
@@ -14,6 +16,7 @@ import { ReactNode } from "react";
 import { CardAction as CardActionType } from "@/types/Card";
 
 export type CardProps = {
+  ticketId: string;
   title: string;
   Description: string;
   action: CardActionType;
@@ -23,9 +26,24 @@ export type CardProps = {
 };
 
 
-const Card = ({ title, Description, action, actionContent, children, footer }: CardProps) => {
+const Card = ({ ticketId, title, Description, action, actionContent, children, footer }: CardProps) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: ticketId,
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   return (
-    <ShadcnCard className="w-full max-w-sm">
+    <ShadcnCard
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className="w-full max-w-sm cursor-grab active:cursor-grabbing"
+    >
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{Description}</CardDescription>

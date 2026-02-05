@@ -21,6 +21,7 @@ import {
   TicketFormData,
   ticketPriorityOptions,
   ticketTypeOptions,
+  ticketPointsOptions,
 } from "@/types/Ticket";
 import { useBoardContext } from "@/app/context/BoardContext/BoardContext";
 
@@ -68,6 +69,7 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
       assigneeId: null,
       assigneeName: "Unassigned",
       laneId: undefined,
+      points: undefined,
     },
     mode: "onSubmit",
   });
@@ -90,6 +92,7 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
       description: data.description ?? EMPTY_DOC,
       type: data.type,
       priority: data.priority,
+      points: data.points,
       assigneeId: data.assigneeId,
       assigneeName: data.assigneeName,
     };
@@ -220,6 +223,35 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
           )}
         />
       </div>
+
+      {/* Points */}
+      <div className="space-y-2">
+        <Label htmlFor="points">Points</Label>
+        <Controller
+          control={control}
+          name="points"
+          render={({ field }) => (
+            <Select
+              value={field.value?.toString()}
+              onValueChange={(value) => field.onChange(Number(value))}
+              disabled={isSubmitting}
+            >
+              <SelectTrigger id="points">
+                <SelectValue placeholder="Select points" />
+              </SelectTrigger>
+              <SelectContent>
+                {ticketPointsOptions.map((point) => (
+                  <SelectItem value={point.toString()} key={point}>
+                    {point}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+      </div>
+
+      {/* Lane */}
       <div className="space-y-2">
         <Label htmlFor="lane">Lane</Label>
         <Controller

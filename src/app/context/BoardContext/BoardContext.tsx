@@ -10,12 +10,14 @@ import React, {
 import type { Board } from "@/types/Board";
 import type { Project, Sprint } from "@/types/Project";
 import { TicketType } from "@/types/Card";
+import type { User } from "@/types/User";
 
 type BoardContextType = {
   board: Board | null;
   project: Project | null;
   currentSprint: Sprint | null;
   tickets: TicketType[];
+  users: User[];
   loading: boolean;
   error: string | null;
   setProjectId: (projectId: string | null) => void;
@@ -31,6 +33,7 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
   const [currentSprint, setCurrentSprint] = useState<Sprint | null>(null);
   const [tickets, setTickets] = useState<TicketType[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   const fetchBoard = useCallback(async (id: string) => {
     try {
@@ -42,6 +45,21 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
 
       const data: Board = await response.json();
       setBoard(data);
+    } catch (err) {
+      throw err;
+    }
+  }, []);
+
+  const fetchUsers = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(`/api/Users?projectId=${id}`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch users: ${response.statusText}`);
+      }
+
+      const usersData: User[] = await response.json();
+      setUsers(usersData);
     } catch (err) {
       throw err;
     }
@@ -82,6 +100,7 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
       setProject(null);
       setCurrentSprint(null);
       setTickets([]);
+      setUsers([]);
       return;
     }
 
@@ -92,23 +111,25 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         await fetchBoard(projectId);
         await fetchProject(projectId);
+        await fetchUsers(projectId);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
         setBoard(null);
         setProject(null);
         setCurrentSprint(null);
         setTickets([]);
+        setUsers([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [projectId, fetchBoard, fetchProject]);
+  }, [projectId, fetchBoard, fetchProject, fetchUsers]);
 
   return (
     <BoardContext.Provider
-      value={{ board, project, currentSprint, tickets, loading, error, setProjectId }}
+      value={{ board, project, currentSprint, tickets, users, loading, error, setProjectId }}
     >
       {children}
     </BoardContext.Provider>

@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useDroppable } from "@dnd-kit/core";
 import Card from "@/app/components/organisms/Card/Card";
 import Ticket from "@/app/components/organisms/Ticket/Tiket";
 import TickFooter from "@/app/components/organisms/Ticket/TickFooter";
@@ -6,6 +7,7 @@ import TicketActionItem from "@/app/components/organisms/Ticket/TicketActionItem
 import { TicketType } from "@/types/Card";
 import { Typography } from "../../atoms/Typography/Typography";
 import { tiptapToPlainText, truncateText } from "@/app/utils/utils";
+import { useBoardContext } from "@/app/context/BoardContext/BoardContext";
 
 type LaneProps = {
   Title: string;
@@ -14,6 +16,11 @@ type LaneProps = {
 };
 
 const Lane = ({ Title, tickets, laneId }: LaneProps) => {
+  const { users } = useBoardContext();
+  const { setNodeRef } = useDroppable({
+    id: laneId || "default-lane",
+  });
+
   const filteredTickets = useMemo(
     () =>
       laneId ? tickets.filter((ticket) => ticket.laneId === laneId) : tickets,
@@ -21,7 +28,10 @@ const Lane = ({ Title, tickets, laneId }: LaneProps) => {
   );
 
   return (
-    <div className="flex flex-col gap-4 bg-muted p-4 rounded-md w-100">
+    <div
+      ref={setNodeRef}
+      className="flex flex-col gap-4 bg-muted p-4 rounded-md w-100"
+    >
       <Typography variant="h4">{Title}</Typography>
       {filteredTickets.map((ticket) => {
         const descriptionText = truncateText(
@@ -29,21 +39,26 @@ const Lane = ({ Title, tickets, laneId }: LaneProps) => {
           120,
         );
 
+        const assignedUser = ticket.assigneeId
+          ? users.find((user) => user.id === ticket.assigneeId)
+          : null;
+
         return (
           <Card
             key={ticket.id}
+            ticketId={ticket.id}
             title={ticket.title}
             Description={descriptionText}
             action={ticket.action}
             actionContent={
-              ticket.assigneeId && ticket.assigneeName ? (
+              assignedUser ? (
                 <TicketActionItem
-                  assigneePhoto={ticket.assigneePhoto}
-                  assigneeName={ticket.assigneeName}
+                  assigneePhoto={assignedUser.avatarUrl}
+                  assigneeName={assignedUser.name}
                 />
               ) : undefined
             }
-            footer={<TickFooter />}
+            footer={<TickFooter ticketId={ticket.id} points={ticket.points} />}
           >
             {ticket.type && ticket.priority ? (
               <Ticket

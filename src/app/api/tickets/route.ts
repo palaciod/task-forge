@@ -157,6 +157,7 @@ export const POST = async (request: Request) => {
     Description: body.description,
     type: body.type || "task",
     priority: body.priority || "medium",
+    points: body.points,
     assigneePhoto: body.assigneePhoto,
     assigneeId: body.assigneeId || null,
     assigneeName: body.assigneeName || null,
@@ -169,4 +170,33 @@ export const POST = async (request: Request) => {
   await writeTickets(tickets);
 
   return NextResponse.json(newTicket, { status: 201 });
+};
+
+export const PATCH = async (request: Request) => {
+  const { searchParams } = new URL(request.url);
+  const ticketId = searchParams.get("ticketId");
+  const body = await request.json();
+
+  if (!ticketId) {
+    return NextResponse.json({ error: "ticketId is required" }, { status: 400 });
+  }
+
+  const tickets = await readTickets();
+  const ticketIndex = tickets.findIndex((t) => t.id === ticketId);
+
+  if (ticketIndex === -1) {
+    return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+  }
+
+  // Update ticket with provided fields
+  const updatedTicket = {
+    ...tickets[ticketIndex],
+    ...body,
+    updatedAt: new Date().toISOString(),
+  };
+
+  tickets[ticketIndex] = updatedTicket;
+  await writeTickets(tickets);
+
+  return NextResponse.json(updatedTicket);
 };
