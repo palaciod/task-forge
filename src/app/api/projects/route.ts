@@ -33,8 +33,22 @@ const writeBoards = async (boards: Board[]): Promise<void> => {
   await fs.writeFile(boardsFilePath, JSON.stringify(boards, null, 2));
 };
 
-export const GET = async () => {
+export const GET = async (request: Request) => {
+  const { searchParams } = new URL(request.url);
+  const projectId = searchParams.get("id");
+
   const projects = await readProjects();
+
+  if (projectId) {
+    const project = projects.find((p) => p.id === projectId);
+    
+    if (!project) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+    
+    return NextResponse.json(project);
+  }
+
   return NextResponse.json(projects);
 };
 

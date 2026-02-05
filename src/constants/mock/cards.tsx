@@ -12,7 +12,15 @@ export const SimpleTickets: TicketType[] = [
       sprintHistory: [MOCK_SPRINT_ID],
       ticketNumber: 1,
       title: "TASK-123",
-      Description: "Implement user authentication flow",
+      Description: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Implement user authentication flow" }]
+          }
+        ]
+      },
       action: {
         onClick: () => console.log("Settings clicked"),
         name: "Settings",
@@ -32,7 +40,15 @@ export const SimpleTickets: TicketType[] = [
       sprintHistory: [MOCK_SPRINT_ID],
       ticketNumber: 2,
       title: "BUG-456",
-      Description: "Fix navigation menu not closing on mobile",
+      Description: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Fix navigation menu not closing on mobile" }]
+          }
+        ]
+      },
       action: {
         onClick: () => console.log("Settings clicked"),
         name: "Settings",
@@ -51,7 +67,15 @@ export const SimpleTickets: TicketType[] = [
       sprintHistory: [MOCK_SPRINT_ID],
       ticketNumber: 3,
       title: "STORY-789",
-      Description: "Add dark mode support across the application Add dark mode support across the application Add dark mode support across the applicationAdd dark mode support across the applicationAdd dark mode support across the application Add dark mode support across the application Add dark mode support across the applicationAdd dark mode support across the application Add dark mode support across the applicationAdd dark mode support across the applicationAdd dark mode support across the application",
+      Description: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Add dark mode support across the application. This includes updating all components to support theme switching and ensuring consistent styling." }]
+          }
+        ]
+      },
       action: {
         onClick: () => console.log("Settings clicked"),
         name: "Settings",
@@ -71,7 +95,15 @@ export const SimpleTickets: TicketType[] = [
       sprintHistory: [MOCK_SPRINT_ID],
       ticketNumber: 4,
       title: "TASK-999",
-      Description: "Refactor database connection pooling",
+      Description: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Refactor database connection pooling" }]
+          }
+        ]
+      },
       action: {
         onClick: () => console.log("Settings clicked"),
         name: "Settings",

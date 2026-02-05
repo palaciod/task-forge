@@ -1,5 +1,6 @@
 'use client';
 import React from "react";
+import { useRouter } from "next/navigation";
 import {
   Drawer,
   DrawerClose,
@@ -11,13 +12,15 @@ import {
 import { Button } from "@/app/components/atoms/Button/Button";
 import { Menu } from "lucide-react";
 
-const menuOptions = [
-  { label: "Option 1", onClick: () => console.log("Option 1 clicked") },
-  { label: "Option 2", onClick: () => console.log("Option 2 clicked") },
-  { label: "Add User", onClick: () => console.log("Add User clicked") },
-];
-
 const MenuDrawer = () => {
+  const router = useRouter();
+
+  const menuOptions = [
+    { label: "Option 1", onClick: () => console.log("Option 1 clicked") },
+    { label: "Option 2", onClick: () => console.log("Option 2 clicked") },
+    { label: "Add User", onClick: () => router.push("/user") },
+  ];
+
   return (
     <Drawer direction="left">
       <DrawerTrigger asChild>

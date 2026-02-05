@@ -1,5 +1,6 @@
 import { IconName } from "./Icon";
 import { ReactNode } from "react";
+import type { JSONContent } from "@tiptap/react";
 
 export type CardAction = {
   onClick: () => void;
@@ -13,7 +14,7 @@ export type TicketType = {
   sprintHistory: string[];
   ticketNumber: number;
   title: string;
-  Description: string;
+  Description: JSONContent;
   action: CardAction;
   type?: "task" | "bug" | "story";
   priority?: "high" | "medium" | "low";

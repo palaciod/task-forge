@@ -1,45 +1,115 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import type { Board } from "@/types/Board";
+import type { Project, Sprint } from "@/types/Project";
+import { TicketType } from "@/types/Card";
 
 type BoardContextType = {
   board: Board | null;
+  project: Project | null;
+  currentSprint: Sprint | null;
+  tickets: TicketType[];
   loading: boolean;
   error: string | null;
-  fetchBoard: (projectId: string) => Promise<void>;
+  setProjectId: (projectId: string | null) => void;
 };
 
 const BoardContext = createContext<BoardContextType | undefined>(undefined);
 
 export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
   const [board, setBoard] = useState<Board | null>(null);
+  const [project, setProject] = useState<Project | null>(null);
+  const [projectId, setProjectId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentSprint, setCurrentSprint] = useState<Sprint | null>(null);
+  const [tickets, setTickets] = useState<TicketType[]>([]);
 
-  const fetchBoard = useCallback(async (projectId: string) => {
-    setLoading(true);
-    setError(null);
-    
+  const fetchBoard = useCallback(async (id: string) => {
     try {
-      const response = await fetch(`/api/boards?id=${projectId}`);
-      
+      const response = await fetch(`/api/boards?id=${id}`);
+
       if (!response.ok) {
         throw new Error(`Failed to fetch board: ${response.statusText}`);
       }
-      
-      const data = await response.json();
+
+      const data: Board = await response.json();
       setBoard(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-      setBoard(null);
-    } finally {
-      setLoading(false);
+      throw err;
     }
   }, []);
 
+  const fetchProject = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(`/api/projects?id=${id}`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch project: ${response.statusText}`);
+      }
+
+      const projectData: Project = await response.json();
+      setProject(projectData);
+      
+      const lastSprint = projectData?.sprints?.at(-1) || null;
+      setCurrentSprint(lastSprint);
+      
+      // Fetch tickets for current sprint if it exists
+      if (lastSprint?.id) {
+        const ticketsResponse = await fetch(`/api/tickets?sprintId=${lastSprint?.id}`);
+        if (ticketsResponse.ok) {
+          const ticketsData = await ticketsResponse.json();
+          setTickets(ticketsData);
+        }
+      } else {
+        setTickets([]);
+      }
+    } catch (err) {
+      throw err;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!projectId) {
+      setBoard(null);
+      setProject(null);
+      setCurrentSprint(null);
+      setTickets([]);
+      return;
+    }
+
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        await fetchBoard(projectId);
+        await fetchProject(projectId);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+        setBoard(null);
+        setProject(null);
+        setCurrentSprint(null);
+        setTickets([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [projectId, fetchBoard, fetchProject]);
+
   return (
-    <BoardContext.Provider value={{ board, loading, error, fetchBoard }}>
+    <BoardContext.Provider
+      value={{ board, project, currentSprint, tickets, loading, error, setProjectId }}
+    >
       {children}
     </BoardContext.Provider>
   );

@@ -36,6 +36,50 @@ const mockBoardData = {
   updatedAt: "2026-01-30T03:36:54.206Z"
 };
 
+const mockProjectData = {
+  id: "f713df67-9ffe-4fe2-882c-282a31dcd523",
+  name: "SummerTime Saga",
+  description: "A project management system",
+  sprints: [
+    {
+      id: "sprint-1",
+      name: "Sprint 1",
+      iteration: 1
+    }
+  ],
+  epics: []
+};
+
+const mockTicketsData = [
+  {
+    id: "ticket-1",
+    projectId: "f713df67-9ffe-4fe2-882c-282a31dcd523",
+    sprintId: "sprint-1",
+    sprintHistory: ["sprint-1"],
+    ticketNumber: 1,
+    title: "SAGA-1",
+    Description: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Sample ticket description" }]
+        }
+      ]
+    },
+    action: {
+      onClick: () => console.log("Settings clicked"),
+      name: "Settings",
+    },
+    type: "task",
+    priority: "high",
+    assigneeId: "user-1",
+    assigneeName: "John Doe",
+    createdAt: "2026-01-30T03:36:54.206Z",
+    updatedAt: "2026-01-30T03:36:54.206Z"
+  }
+];
+
 const meta = {
   title: "Templates/Board",
   component: Board,
@@ -45,12 +89,28 @@ const meta = {
       const originalFetch = global.fetch;
       global.fetch = async (url: string | URL | Request) => {
         const urlString = url.toString();
+        
         if (urlString.includes('/api/boards')) {
           return Promise.resolve({
             ok: true,
             json: async () => mockBoardData,
           } as Response);
         }
+        
+        if (urlString.includes('/api/projects')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockProjectData,
+          } as Response);
+        }
+        
+        if (urlString.includes('/api/tickets')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockTicketsData,
+          } as Response);
+        }
+        
         return originalFetch(url);
       };
 

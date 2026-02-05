@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import type { User } from "@/types/User";
 import type { JSONContent } from "@tiptap/react";
 
 import { Button } from "@/app/components/atoms/Button/Button";
 import { Input } from "@/app/components/atoms/Input/Input";
 import { Label } from "@/app/components/atoms/Label/Label";
 import TicketEditor from "@/app/components/organisms/Editor/TicketEditor";
+import UserSelect from "@/app/components/molecules/Select/UserSelect";
 
 import {
   Select,
@@ -50,14 +50,13 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(true);
 
   const {
     register,
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<TicketFormData>({
     defaultValues: {
@@ -69,27 +68,6 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
     },
     mode: "onSubmit",
   });
-
-  // Fetch users belonging to the project
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch(`/api/Users?projectId=${projectId}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch users");
-        }
-        const data = await response.json();
-        setUsers(data);
-      } catch (err) {
-        console.error("Error fetching users:", err);
-        setError("Failed to load users");
-      } finally {
-        setLoadingUsers(false);
-      }
-    };
-
-    fetchUsers();
-  }, [projectId]);
 
   const onSubmit = async (data: TicketFormData) => {
     setIsSubmitting(true);
@@ -237,46 +215,21 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
       </div>
 
       {/* Assignee */}
-      <div className="space-y-2">
-        <Label htmlFor="assignee">Assignee</Label>
-        <Controller
-          control={control}
-          name="assigneeId"
-          render={({ field }) => (
-            <Select
-              value={field.value || "unassigned"}
-              onValueChange={(value) => {
-                if (value === "unassigned") {
-                  field.onChange(null);
-                  // Also update assigneeName
-                  const assigneeNameField = control._formValues.assigneeName;
-                  control._formValues.assigneeName = "Unassigned";
-                } else {
-                  field.onChange(value);
-                  // Find user and set assigneeName
-                  const user = users.find((u) => u.id === value);
-                  if (user) {
-                    control._formValues.assigneeName = user.name;
-                  }
-                }
-              }}
-              disabled={isSubmitting || loadingUsers}
-            >
-              <SelectTrigger id="assignee">
-                <SelectValue placeholder="Select assignee" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="unassigned">Unassigned</SelectItem>
-                {users.map((user) => (
-                  <SelectItem value={user.id} key={user.id}>
-                    {user.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
-      </div>
+      <Controller
+        control={control}
+        name="assigneeId"
+        render={({ field }) => (
+          <UserSelect
+            projectId={projectId}
+            value={field.value}
+            onValueChange={(userId, userName) => {
+              field.onChange(userId);
+              setValue("assigneeName", userName);
+            }}
+            disabled={isSubmitting}
+          />
+        )}
+      />
 
       {/* Success Message */}
       {success && (

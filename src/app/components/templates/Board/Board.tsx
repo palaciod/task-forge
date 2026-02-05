@@ -12,13 +12,11 @@ type BoardProps = {
 };
 
 const Board = ({ projectId, sprintId }: BoardProps) => {
-  const { board, loading, error, fetchBoard } = useBoardContext();
+  const { board, project, tickets, loading, error, setProjectId } = useBoardContext();
 
   useEffect(() => {
-    if (projectId) {
-      fetchBoard(projectId);
-    }
-  }, [projectId, fetchBoard]);
+    setProjectId(projectId);
+  }, [projectId, setProjectId]);
 
   if (loading) {
     return (
@@ -44,7 +42,7 @@ const Board = ({ projectId, sprintId }: BoardProps) => {
       </div>
       <div className="flex gap-8 px-8">
         {board?.lanes.map((lane) => (
-          <Lane Title={lane.name} key={lane.name} tickets={SimpleTickets} />
+          <Lane Title={lane.name} key={lane.name} tickets={tickets} />
         ))}
       </div>
     </div>

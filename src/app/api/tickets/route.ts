@@ -91,7 +91,7 @@ export const POST = async (request: Request) => {
     return NextResponse.json({ error: "sprintId is required" }, { status: 400 });
   }
 
-  if (!body.Description) {
+  if (!body.description) {
     return NextResponse.json({ error: "Description is required" }, { status: 400 });
   }
 
@@ -138,7 +138,7 @@ export const POST = async (request: Request) => {
     sprintHistory: [body.sprintId],
     ticketNumber: nextTicketNumber,
     title: `${board.key.toUpperCase()}-${nextTicketNumber}`,
-    Description: body.Description,
+    Description: body.description,
     type: body.type || "task",
     priority: body.priority || "medium",
     assigneePhoto: body.assigneePhoto,
