@@ -5,7 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import type { JSONContent } from "@tiptap/react";
 
 import { Button } from "@/app/components/atoms/Button/Button";
-import { Input } from "@/app/components/atoms/Input/Input";
+import { FormField } from "@/app/components/molecules/FormField/FormField";
 import { Label } from "@/app/components/atoms/Label/Label";
 import TicketEditor from "@/app/components/organisms/Editor/TicketEditor";
 import UserSelect from "@/app/components/molecules/Select/UserSelect";
@@ -63,6 +63,7 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
     formState: { errors },
   } = useForm<TicketFormData>({
     defaultValues: {
+      title: "",
       description: EMPTY_DOC,
       type: "task",
       priority: "medium",
@@ -89,6 +90,7 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
       projectId,
       sprintId,
       laneId: data.laneId,
+      title: data.title,
       description: data.description ?? EMPTY_DOC,
       type: data.type,
       priority: data.priority,
@@ -117,6 +119,7 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
 
       setSuccess(true);
       reset({
+        title: "",
         description: EMPTY_DOC,
         type: "task",
         priority: "medium",
@@ -133,6 +136,26 @@ const TicketForm = ({ projectId, sprintId, onSuccess }: TicketFormProps) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Title */}
+      <FormField
+        id="title"
+        label="Title"
+        placeholder="Add a title"
+        required
+        {...register("title", {
+          required: "Title is required",
+          maxLength: {
+            value: 100,
+            message: "Title must be 100 characters or less",
+          },
+        })}
+        disabled={isSubmitting}
+        aria-invalid={!!errors.title}
+      />
+      {errors.title && (
+        <p className="text-sm text-destructive">{errors.title.message}</p>
+      )}
+
       {/* Description (TipTap) */}
       <div className="space-y-2">
         <Label htmlFor="description">

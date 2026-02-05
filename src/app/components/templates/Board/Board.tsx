@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -7,6 +7,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragEndEvent,
 } from "@dnd-kit/core";
 import Lane from "@/app/components/organisms/Lane/Lane";
 import Card from "@/app/components/organisms/Card/Card";
@@ -17,6 +18,7 @@ import { useBoardContext } from "@/app/context/BoardContext/BoardContext";
 import TicketFormModal from "@/app/components/organisms/Modal/TicketFormModal/TicketFormModal";
 import MenuDrawer from "@/app/components/molecules/MenuDrawer/MenuDrawer";
 import { tiptapToPlainText, truncateText } from "@/app/utils/utils";
+import { TicketType } from "@/types/Card";
 
 type BoardProps = {
   projectId: string;
@@ -24,8 +26,9 @@ type BoardProps = {
 };
 
 const Board = ({ projectId, sprintId }: BoardProps) => {
-  const { board, project, users, tickets, loading, error, setProjectId } = useBoardContext();
-  const [activeId, setActiveId] = React.useState<string | null>(null);
+  const { board, project, users, tickets: contextTickets, loading, error, setProjectId } = useBoardContext();
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [localTickets, setLocalTickets] = useState<TicketType[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -35,6 +38,11 @@ const Board = ({ projectId, sprintId }: BoardProps) => {
     })
   );
 
+  // Sync local tickets with context
+  useEffect(() => {
+    setLocalTickets(contextTickets);
+  }, [contextTickets]);
+
   useEffect(() => {
     setProjectId(projectId);
   }, [projectId, setProjectId]);
@@ -43,12 +51,47 @@ const Board = ({ projectId, sprintId }: BoardProps) => {
     setActiveId(event.active.id);
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
     setActiveId(null);
-    // Later: handle drop logic here
+
+    // If not dropped over anything or dropped on same lane, do nothing
+    if (!over) return;
+
+    const ticketId = active.id as string;
+    const newLaneId = over.id as string;
+
+    const ticket = localTickets.find((t) => t.id === ticketId);
+    if (!ticket) return;
+
+    // If dropped in same lane, do nothing
+    if (ticket.laneId === newLaneId) return;
+
+    // Optimistic update: Update local state immediately
+    const previousTickets = [...localTickets];
+    setLocalTickets((prev) =>
+      prev.map((t) => (t.id === ticketId ? { ...t, laneId: newLaneId } : t))
+    );
+
+    // Call API to update ticket
+    try {
+      const response = await fetch(`/api/tickets?ticketId=${ticketId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ laneId: newLaneId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update ticket lane");
+      }
+    } catch (error) {
+      console.error("Error updating ticket lane:", error);
+      // Revert on error
+      setLocalTickets(previousTickets);
+    }
   };
 
-  const activeTicket = activeId ? tickets.find((t) => t.id === activeId) : null;
+  const activeTicket = activeId ? localTickets.find((t) => t.id === activeId) : null;
 
   if (loading) {
     return (
@@ -80,13 +123,13 @@ const Board = ({ projectId, sprintId }: BoardProps) => {
         </div>
         <div className="flex gap-8 px-8">
           {board?.lanes.map((lane) => (
-            <Lane Title={lane.name} key={lane.name} tickets={tickets} laneId={lane.id} />
+            <Lane Title={lane.name} key={lane.name} tickets={localTickets} laneId={lane.id} />
           ))}
         </div>
       </div>
       <DragOverlay>
         {activeTicket ? (
-          <div style={{ opacity: 0.5, cursor: "grabbing" }}>
+          <div className="opacity-50 cursor-grabbing">
             <Card
               ticketId={activeTicket.id}
               title={activeTicket.title}

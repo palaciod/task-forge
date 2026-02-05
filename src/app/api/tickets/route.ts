@@ -91,6 +91,14 @@ export const POST = async (request: Request) => {
     return NextResponse.json({ error: "sprintId is required" }, { status: 400 });
   }
 
+  if (!body.title) {
+    return NextResponse.json({ error: "Title is required" }, { status: 400 });
+  }
+
+  if (body.title.length > 100) {
+    return NextResponse.json({ error: "Title must be 100 characters or less" }, { status: 400 });
+  }
+
   if (!body.description) {
     return NextResponse.json({ error: "Description is required" }, { status: 400 });
   }
@@ -153,7 +161,7 @@ export const POST = async (request: Request) => {
     laneId: laneId,
     laneHistory: [laneId],
     ticketNumber: nextTicketNumber,
-    title: `${board.key.toUpperCase()}-${nextTicketNumber}`,
+    title: body.title,
     Description: body.description,
     type: body.type || "task",
     priority: body.priority || "medium",
@@ -188,10 +196,19 @@ export const PATCH = async (request: Request) => {
     return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
   }
 
+  const currentTicket = tickets[ticketIndex];
+
+  // If laneId is being updated, add to laneHistory
+  let updatedFields = { ...body };
+  if (body.laneId && body.laneId !== currentTicket.laneId) {
+    const currentHistory = currentTicket.laneHistory || [];
+    updatedFields.laneHistory = [...currentHistory, body.laneId];
+  }
+
   // Update ticket with provided fields
   const updatedTicket = {
-    ...tickets[ticketIndex],
-    ...body,
+    ...currentTicket,
+    ...updatedFields,
     updatedAt: new Date().toISOString(),
   };
 

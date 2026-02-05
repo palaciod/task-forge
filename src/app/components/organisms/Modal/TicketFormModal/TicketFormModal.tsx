@@ -9,6 +9,7 @@ import {
   ModalTrigger,
 } from "@/app/components/organisms/Modal/Modal";
 import TicketForm from "@/app/components/organisms/Forms/Ticket/TicketForm";
+import { useBoardContext } from "@/app/context/BoardContext/BoardContext";
 
 type TicketFormModalProps = {
   projectId: string;
@@ -17,6 +18,12 @@ type TicketFormModalProps = {
 
 const TicketFormModal = ({ projectId, sprintId }: TicketFormModalProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { refetchTickets } = useBoardContext();
+
+  const handleSuccess = async () => {
+    setIsModalOpen(false);
+    await refetchTickets();
+  };
 
   return (
     <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -30,7 +37,7 @@ const TicketFormModal = ({ projectId, sprintId }: TicketFormModalProps) => {
         <TicketForm
           projectId={projectId}
           sprintId={sprintId || ""}
-          onSuccess={() => setIsModalOpen(false)}
+          onSuccess={handleSuccess}
         />
       </ModalContent>
     </Modal>

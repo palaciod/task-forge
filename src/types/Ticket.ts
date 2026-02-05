@@ -10,6 +10,7 @@ const ticketTypeOptions = ["task", "bug", "story"];
 const ticketPointsOptions = [0, 1, 2, 3, 5, 8, 13];
 
 type TicketFormData = {
+  title: string;
   description: JSONContent | null;
   type: TicketType;
   priority: TicketPriority;

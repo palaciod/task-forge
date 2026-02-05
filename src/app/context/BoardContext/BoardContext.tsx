@@ -21,6 +21,7 @@ type BoardContextType = {
   loading: boolean;
   error: string | null;
   setProjectId: (projectId: string | null) => void;
+  refetchTickets: () => Promise<void>;
 };
 
 const BoardContext = createContext<BoardContextType | undefined>(undefined);
@@ -94,6 +95,25 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  const refetchTickets = useCallback(async () => {
+    if (!currentSprint?.id) {
+      setTickets([]);
+      return;
+    }
+
+    try {
+      const ticketsResponse = await fetch(`/api/tickets?sprintId=${currentSprint.id}`);
+      if (ticketsResponse.ok) {
+        const ticketsData = await ticketsResponse.json();
+        setTickets(ticketsData);
+      } else {
+        throw new Error('Failed to refetch tickets');
+      }
+    } catch (err) {
+      console.error('Error refetching tickets:', err);
+    }
+  }, [currentSprint?.id]);
+
   useEffect(() => {
     if (!projectId) {
       setBoard(null);
@@ -129,7 +149,7 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <BoardContext.Provider
-      value={{ board, project, currentSprint, tickets, users, loading, error, setProjectId }}
+      value={{ board, project, currentSprint, tickets, users, loading, error, setProjectId, refetchTickets }}
     >
       {children}
     </BoardContext.Provider>
