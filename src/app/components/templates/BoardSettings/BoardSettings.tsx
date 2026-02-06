@@ -1,7 +1,7 @@
 // app/(dashboard)/boards/[boardId]/settings/page.tsx
 "use client";
 
-import * as React from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 
@@ -31,8 +31,13 @@ type BoardSettingsForm = {
   autoArchiveAfterDays: number;
 };
 
-const BoardSettingsPage = () => {
+type BoardSettingsPageProps = {
+  projectId: string;
+};
+
+const BoardSettingsPage = ({ projectId }: BoardSettingsPageProps) => {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
   const {
     register,
@@ -66,10 +71,72 @@ const BoardSettingsPage = () => {
 
   const v = watch();
 
+  useEffect(() => {
+    const loadBoard = async () => {
+      try {
+        const response = await fetch(`/api/boards?id=${projectId}`);
+        if (!response.ok) {
+          throw new Error("Failed to load board");
+        }
+        const board = await response.json();
+        setValue("boardName", board.name);
+        setValue("boardKey", board.key);
+        setValue("lanes", board.lanes);
+        setValue("showDoneColumn", board.settings.showDoneColumn);
+        setValue("wipLimitEnabled", board.settings.wipLimitEnabled);
+        setValue("wipLimitPerUser", board.settings.wipLimitPerUser);
+        setValue("autoArchiveDone", board.settings.autoArchiveDone);
+        setValue("autoArchiveAfterDays", board.settings.autoArchiveAfterDays);
+      } catch (error) {
+        console.error("Error loading board:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBoard();
+  }, [projectId, setValue]);
+
   const onSubmit = async (data: BoardSettingsForm) => {
-    // Replace with your API call
-    console.log("save board settings", data);
+    try {
+      const payload = {
+        id: projectId,
+        name: data.boardName,
+        key: data.boardKey,
+        lanes: data.lanes,
+        settings: {
+          showDoneColumn: data.showDoneColumn,
+          wipLimitEnabled: data.wipLimitEnabled,
+          wipLimitPerUser: data.wipLimitPerUser,
+          autoArchiveDone: data.autoArchiveDone,
+          autoArchiveAfterDays: data.autoArchiveAfterDays,
+        },
+      };
+
+      const response = await fetch("/api/boards", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save board settings");
+      }
+
+      const result = await response.json();
+      console.log(result.message);
+    } catch (error) {
+      console.error("Error saving board settings:", error);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading board settings...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -77,7 +144,9 @@ const BoardSettingsPage = () => {
         {/* Header */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Board settings</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Board settings
+            </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Configure this board’s basics, workflow, and automation.
             </p>
@@ -92,7 +161,11 @@ const BoardSettingsPage = () => {
             >
               Cancel
             </Button>
-            <Button type="submit" form="board-settings" disabled={!isDirty || isSubmitting}>
+            <Button
+              type="submit"
+              form="board-settings"
+              disabled={!isDirty || isSubmitting}
+            >
               Save changes
             </Button>
           </div>
@@ -100,13 +173,20 @@ const BoardSettingsPage = () => {
 
         {/* Panel */}
         <SettingsCard>
-          <form id="board-settings" onSubmit={handleSubmit(onSubmit)} className="space-y-2">
+          <form
+            id="board-settings"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-2"
+          >
             {/* General */}
             <SettingsSection
               title="General"
               description="Name, key, and styling for this board."
             >
-              <SettingsRow title="Board name" description="Shown in the sidebar and board header.">
+              <SettingsRow
+                title="Board name"
+                description="Shown in the sidebar and board header."
+              >
                 <FormField
                   id="boardName"
                   label="Name"
@@ -116,7 +196,10 @@ const BoardSettingsPage = () => {
 
               <div className="border-t border-border/60" />
 
-              <SettingsRow title="Board key" description="Short identifier used in URLs and exports.">
+              <SettingsRow
+                title="Board key"
+                description="Short identifier used in URLs and exports."
+              >
                 <FormField
                   id="boardKey"
                   label="Key"
@@ -135,7 +218,10 @@ const BoardSettingsPage = () => {
                 title="Workflow"
                 description="Control how the board behaves day-to-day."
               >
-                <SettingsRow title="Board lanes" description="Add, remove, or reorder your workflow stages.">
+                <SettingsRow
+                  title="Board lanes"
+                  description="Add, remove, or reorder your workflow stages."
+                >
                   <div className="space-y-3">
                     {fields.map((field, index) => (
                       <div key={field.id} className="flex items-center gap-2">
@@ -160,7 +246,9 @@ const BoardSettingsPage = () => {
                           </Button>
                         </div>
                         <Input
-                          {...register(`lanes.${index}.name`, { required: true })}
+                          {...register(`lanes.${index}.name`, {
+                            required: true,
+                          })}
                           placeholder="Lane name"
                           className="flex-1"
                         />
@@ -179,7 +267,13 @@ const BoardSettingsPage = () => {
                       type="button"
                       variant="outline"
                       className="w-full"
-                      onClick={() => append({ id: crypto.randomUUID(), name: "", order: fields.length })}
+                      onClick={() =>
+                        append({
+                          id: crypto.randomUUID(),
+                          name: "",
+                          order: fields.length,
+                        })
+                      }
                     >
                       <Icon name="Plus" size="sm" className="mr-2" />
                       Add lane
@@ -191,7 +285,10 @@ const BoardSettingsPage = () => {
 
                 <div className="border-t border-border/60" />
 
-                <SettingsRow title="WIP limits" description="Limit how many items each user can have in progress.">
+                <SettingsRow
+                  title="WIP limits"
+                  description="Limit how many items each user can have in progress."
+                >
                   <div className="space-y-4">
                     <SwitchField
                       label="Enable WIP limits"
@@ -199,7 +296,9 @@ const BoardSettingsPage = () => {
                       variant="card"
                       checked={v.wipLimitEnabled}
                       onCheckedChange={(checked) =>
-                        setValue("wipLimitEnabled", checked, { shouldDirty: true })
+                        setValue("wipLimitEnabled", checked, {
+                          shouldDirty: true,
+                        })
                       }
                     />
                     <FormField
@@ -208,7 +307,10 @@ const BoardSettingsPage = () => {
                       type="number"
                       min={1}
                       disabled={!v.wipLimitEnabled}
-                      {...register("wipLimitPerUser", { valueAsNumber: true, min: 1 })}
+                      {...register("wipLimitPerUser", {
+                        valueAsNumber: true,
+                        min: 1,
+                      })}
                     />
                   </div>
                 </SettingsRow>
@@ -221,7 +323,10 @@ const BoardSettingsPage = () => {
                 title="Automation"
                 description="Small rules that keep the board tidy."
               >
-                <SettingsRow title="Auto-archive Done" description="Archive completed items after a delay.">
+                <SettingsRow
+                  title="Auto-archive Done"
+                  description="Archive completed items after a delay."
+                >
                   <div className="space-y-4">
                     <SwitchField
                       label="Enable auto-archive"
@@ -229,7 +334,9 @@ const BoardSettingsPage = () => {
                       variant="card"
                       checked={v.autoArchiveDone}
                       onCheckedChange={(checked) =>
-                        setValue("autoArchiveDone", checked, { shouldDirty: true })
+                        setValue("autoArchiveDone", checked, {
+                          shouldDirty: true,
+                        })
                       }
                     />
                     <FormField
@@ -238,7 +345,10 @@ const BoardSettingsPage = () => {
                       type="number"
                       min={1}
                       disabled={!v.autoArchiveDone}
-                      {...register("autoArchiveAfterDays", { valueAsNumber: true, min: 1 })}
+                      {...register("autoArchiveAfterDays", {
+                        valueAsNumber: true,
+                        min: 1,
+                      })}
                     />
                   </div>
                 </SettingsRow>

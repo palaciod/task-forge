@@ -7,17 +7,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/molecules/Select/Select";
+import TicketViewModal from "@/app/components/organisms/Modal/TicketViewModal";
 
 const STORY_POINTS = [0, 1, 2, 3, 5, 8, 13];
 
 type TickFooterProps = {
   ticketId: string;
   points?: number;
+  onTicketUpdated?: () => void;
 };
 
-const TickFooter = ({ ticketId, points }: TickFooterProps) => {
+const TickFooter = ({ ticketId, points, onTicketUpdated }: TickFooterProps) => {
   const [currentPoints, setCurrentPoints] = useState<number | undefined>(points);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handlePointsChange = async (value: string) => {
     const newPoints = Number(value);
@@ -44,27 +47,40 @@ const TickFooter = ({ ticketId, points }: TickFooterProps) => {
   };
 
   return (
-    <div className="flex gap-2 w-full">
-      <Button variant="default" className="flex-1">
-        Expand
-      </Button>
-      <Select
-        value={currentPoints?.toString()}
-        onValueChange={handlePointsChange}
-        disabled={isUpdating}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Points" />
-        </SelectTrigger>
-        <SelectContent>
-          {STORY_POINTS.map((point) => (
-            <SelectItem key={point} value={point.toString()}>
-              {point}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <>
+      <div className="flex gap-2 w-full">
+        <Button 
+          variant="default" 
+          className="flex-1"
+          onClick={() => setIsModalOpen(true)}
+        >
+          Expand
+        </Button>
+        <Select
+          value={currentPoints?.toString()}
+          onValueChange={handlePointsChange}
+          disabled={isUpdating}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Points" />
+          </SelectTrigger>
+          <SelectContent>
+            {STORY_POINTS.map((point) => (
+              <SelectItem key={point} value={point.toString()}>
+                {point}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <TicketViewModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        ticketId={ticketId}
+        onTicketUpdated={onTicketUpdated}
+      />
+    </>
   );
 };
 

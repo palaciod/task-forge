@@ -58,6 +58,7 @@ const NewProject = ({ isModal = false, onSuccess }: NewProjectProps = {}) => {
   });
 
   const onSubmit = async (data: NewProjectForm) => {
+    console.log('Submitting data:', data);
     try {
       const payload = {
         name: data.projectName,

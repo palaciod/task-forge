@@ -217,3 +217,24 @@ export const PATCH = async (request: Request) => {
 
   return NextResponse.json(updatedTicket);
 };
+
+export const DELETE = async (request: Request) => {
+  const { searchParams } = new URL(request.url);
+  const ticketId = searchParams.get("ticketId");
+
+  if (!ticketId) {
+    return NextResponse.json({ error: "ticketId is required" }, { status: 400 });
+  }
+
+  const tickets = await readTickets();
+  const ticketIndex = tickets.findIndex((t) => t.id === ticketId);
+
+  if (ticketIndex === -1) {
+    return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+  }
+
+  tickets.splice(ticketIndex, 1);
+  await writeTickets(tickets);
+
+  return NextResponse.json({ success: true, message: "Ticket deleted successfully" });
+};
