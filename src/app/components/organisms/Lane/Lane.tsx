@@ -51,12 +51,10 @@ const Lane = ({ Title, tickets, laneId }: LaneProps) => {
             Description={descriptionText}
             action={ticket.action}
             actionContent={
-              assignedUser ? (
-                <TicketActionItem
-                  assigneePhoto={assignedUser.avatarUrl}
-                  assigneeName={assignedUser.name}
-                />
-              ) : undefined
+              <TicketActionItem
+                assigneePhoto={assignedUser?.avatarUrl}
+                assigneeName={assignedUser?.name || "Unassigned"}
+              />
             }
             footer={<TickFooter ticketId={ticket.id} points={ticket.points} />}
           >

@@ -7,20 +7,29 @@ import "./Search.styles.scss";
 
 type SearchProps = {
   onClick: (value: string) => void;
+  onChange?: (value: string) => void;
+  showSearchIcon?: boolean;
 };
 
-const Search: FC<SearchProps> = ({ onClick }) => {
+const Search: FC<SearchProps> = ({ onClick, onChange, showSearchIcon = true }) => {
   const [search, setSearch] = useState<string>('');
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearch(value);
+    onChange?.(value);
+  };
+  
   return (
     <div className="searchContainer">
       <Input
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={handleChange}
         type="text"
         placeholder="Search..."
       />
       <Button variant="outline" size="icon" onClick={() => onClick(search)}>
-        <Icon name="Search" />
+        {showSearchIcon && <Icon name="Search" />}
       </Button>
     </div>
   );

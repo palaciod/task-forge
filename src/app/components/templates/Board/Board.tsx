@@ -19,6 +19,8 @@ import TicketFormModal from "@/app/components/organisms/Modal/TicketFormModal/Ti
 import MenuDrawer from "@/app/components/molecules/MenuDrawer/MenuDrawer";
 import { tiptapToPlainText, truncateText } from "@/app/utils/utils";
 import { TicketType } from "@/types/Card";
+import ButtonMenu from "../../molecules/ButtonMenu/ButtonMenu";
+import { BOARD_MENU_BUTTONS } from "@/constants/constants";
 
 type BoardProps = {
   projectId: string;
@@ -119,6 +121,7 @@ const Board = ({ projectId, sprintId }: BoardProps) => {
       <div className="flex flex-col gap-4 pt-10 flex-1 w-full">
         <div className="flex justify-between px-8 pb-8">
           <MenuDrawer />
+          <ButtonMenu buttons={BOARD_MENU_BUTTONS}/>
           <TicketFormModal projectId={projectId} sprintId={sprintId} />
         </div>
         <div className="flex gap-8 px-8">

@@ -115,6 +115,7 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
   }, [currentSprint?.id]);
 
   useEffect(() => {
+    console.log('Current projectId:', projectId);
     if (!projectId) {
       setBoard(null);
       setProject(null);
@@ -125,10 +126,12 @@ export const BoardProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     const fetchData = async () => {
+      console.log('Starting fetchData');
       setLoading(true);
       setError(null);
 
       try {
+        console.log('Fetching data for projectId:', projectId);
         await fetchBoard(projectId);
         await fetchProject(projectId);
         await fetchUsers(projectId);
